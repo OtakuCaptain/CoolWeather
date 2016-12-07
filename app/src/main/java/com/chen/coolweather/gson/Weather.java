@@ -4,9 +4,7 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-/**
- * Created by chen_ on 2016-12-07.
- */
+
 
 public class Weather {
     public String status;
