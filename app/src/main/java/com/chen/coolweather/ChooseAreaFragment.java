@@ -2,9 +2,12 @@ package com.chen.coolweather;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -112,9 +115,9 @@ public class ChooseAreaFragment extends Fragment {
                     } else if (getActivity() instanceof WeatherActivity) {
                         WeatherActivity activity = (WeatherActivity) getActivity();
                         activity.drawer_layout.closeDrawers();
-                        activity.requestWeather(weatherId);
                         activity.swipe_refresh.setRefreshing(true);
-
+                        activity.requestWeather(weatherId);
+                        Log.i("WeatherActivity","侧边栏："+weatherId);
                     }
                 }
             }
@@ -133,6 +136,7 @@ public class ChooseAreaFragment extends Fragment {
         queryProvinces();
 
     }
+
 
     /**
      * 查询省，先从数据库查询，如果没有，则从服务器查询

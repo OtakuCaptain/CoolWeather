@@ -10,6 +10,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -93,18 +94,26 @@ public class WeatherActivity extends AppCompatActivity {
             Weather weather = Utility.handleWeatherResponse(weatherString);
             assert weather != null;
             weatherId = weather.basic.weatherId;
+            Log.i("WeatherActivity", "缓存：" + weatherId);
             showWeatherInfo(weather);
         } else {
             //无缓存则从服务器查询
             weatherId = getIntent().getStringExtra("weather_id");
             weather_layout.setVisibility(View.INVISIBLE);
+            Log.i("WeatherActivity", "服务器：" + weatherId);
             requestWeather(weatherId);
         }
 
         swipe_refresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
+                String weatherString = prefs.getString("weather", null);
+                Weather weather = Utility.handleWeatherResponse(weatherString);
+                assert weather != null;
+                String weatherId = weather.basic.weatherId;
                 requestWeather(weatherId);
+                Log.i("WeatherActivity", "刷新：" + weatherId);
             }
         });
 
@@ -188,8 +197,6 @@ public class WeatherActivity extends AppCompatActivity {
                             editor.putString("weather", responseText);
                             editor.apply();
                             showWeatherInfo(weather);
-
-
                         } else {
                             Toast.makeText(WeatherActivity.this, "获取天气信息失败", Toast.LENGTH_SHORT).show();
                         }
@@ -198,7 +205,6 @@ public class WeatherActivity extends AppCompatActivity {
                 });
             }
         });
-
         loadBingPic();
     }
 
