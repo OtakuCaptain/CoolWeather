@@ -50,7 +50,7 @@ public class WeatherActivity extends AppCompatActivity {
     public SwipeRefreshLayout swipe_refresh;
     public DrawerLayout drawer_layout;
     private Button nav_button;
-    private String weatherId;
+    private String mWeatherId;
     private String bingPic;
 
 
@@ -93,27 +93,22 @@ public class WeatherActivity extends AppCompatActivity {
             //有缓存直接解析数据
             Weather weather = Utility.handleWeatherResponse(weatherString);
             assert weather != null;
-            weatherId = weather.basic.weatherId;
-            Log.i("WeatherActivity", "缓存：" + weatherId);
+            mWeatherId = weather.basic.weatherId;
+            Log.i("WeatherActivity", "缓存：" + mWeatherId);
             showWeatherInfo(weather);
         } else {
             //无缓存则从服务器查询
-            weatherId = getIntent().getStringExtra("weather_id");
+            mWeatherId = getIntent().getStringExtra("weather_id");
             weather_layout.setVisibility(View.INVISIBLE);
-            Log.i("WeatherActivity", "服务器：" + weatherId);
-            requestWeather(weatherId);
+            Log.i("WeatherActivity", "服务器：" + mWeatherId);
+            requestWeather(mWeatherId);
         }
 
         swipe_refresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
-                String weatherString = prefs.getString("weather", null);
-                Weather weather = Utility.handleWeatherResponse(weatherString);
-                assert weather != null;
-                String weatherId = weather.basic.weatherId;
-                requestWeather(weatherId);
-                Log.i("WeatherActivity", "刷新：" + weatherId);
+                requestWeather(mWeatherId);
+                Log.i("WeatherActivity", "刷新：" + mWeatherId);
             }
         });
 
@@ -167,7 +162,7 @@ public class WeatherActivity extends AppCompatActivity {
      *
      * @param weatherId 天气id
      */
-    public void requestWeather(final String weatherId) {
+    public void requestWeather(String weatherId) {
         String weatherUrl = "http://guolin.tech/api/weather?cityid=" +
                 weatherId + "&key=1775cbc6481146f498835bb6b8531889";
         HttpUtil.sendOkHttpRequest(weatherUrl, new Callback() {
@@ -190,18 +185,19 @@ public class WeatherActivity extends AppCompatActivity {
                 final String responseText = response.body().string();
                 final Weather weather = Utility.handleWeatherResponse(responseText);
                 runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (weather != null && "ok".equals(weather.status)) {
-                            SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this).edit();
-                            editor.putString("weather", responseText);
-                            editor.apply();
-                            showWeatherInfo(weather);
-                        } else {
-                            Toast.makeText(WeatherActivity.this, "获取天气信息失败", Toast.LENGTH_SHORT).show();
+                        @Override
+                        public void run() {
+                            if (weather != null && "ok".equals(weather.status)) {
+                                SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this).edit();
+                                editor.putString("weather", responseText);
+                                editor.apply();
+                                mWeatherId = weather.basic.weatherId;
+                                showWeatherInfo(weather);
+                            } else {
+                                Toast.makeText(WeatherActivity.this, "获取天气信息失败", Toast.LENGTH_SHORT).show();
+                            }
+                            swipe_refresh.setRefreshing(false);
                         }
-                        swipe_refresh.setRefreshing(false);
-                    }
                 });
             }
         });
